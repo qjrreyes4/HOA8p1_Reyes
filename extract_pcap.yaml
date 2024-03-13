@@ -1,0 +1,18 @@
+---
+- name: Extract executables from pcap
+  hosts: Server1
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Verify extraction directory
+
+      file:
+        path: /HOA8p1_Reyes/storage/Server1
+        state: directory
+        mode: '0755'
+
+    - name: Extract executables from pcap
+      shell: tshark -r /home/qjrreyes4/analyst/lab.support.files/pcaps -Y 'file magic:0x4D5A' -T fields -e data.data > /HOA8p1_Reyes/storage/Server1/executables.txt
+      args:
+        creates: /HOA8p1_Reyes/storage/Server1
