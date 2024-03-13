@@ -1,0 +1,14 @@
+---
+- name: Extract Executables From PCAP
+  hosts: Server1
+  become: true
+  tasks:
+    - name: Collecting PCAP from Control Node
+      shell: 
+    - name: Transfering PCAP to Manage Node
+      fetch:
+        src:  
+        dest: ~/HOA8p1_Reyes/storage/Server1/
+        flat: yes
+    - name: Extracting PCAP to debug
+      shell:
