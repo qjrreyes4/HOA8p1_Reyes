@@ -1,0 +1,32 @@
+---
+- name: Extract executable from PCAP on Server1
+  hosts: Server1
+  become: true
+
+  tasks:
+    - name: Check if PCAP file exists
+      stat:
+        path: "{{ pcap_path }}"
+      register: pcap_stat
+      failed_when: pcap_stat.stat.exists == false
+
+    - name: Error message if PCAP file not found
+      debug:
+        msg: "PCAP file not found: {{ pcap_path }}"
+      when: pcap_stat.stat.exists == false
+
+    - name: Extract executable using Wireshark
+      command:
+        cmd: tshark -r "{{ pcap_path }}" -T fields -e frame.len -e http.content_length | grep -E '^frame.len:[0-9]+;http.content_length:[0-9]+$' | awk -F';' '{print $2}' | while read len; do tshark -r "{{ pcap_path }}" -T fields -e frame.number -e frame.len -e http.content_type | grep "frame.number: {{.number}}; frame.len: {{len}}; http.content_type: application/octet-stream" && tshark -r "{{ pcap_path }}" -T dissector:http -NR "{{ pcap_path }}.extracted" tcpdump -n "{{ .number }}" ; done
+        chdir: "{{ pcap_dir }}"
+      when: pcap_stat.stat.exists == true
+
+    - name: Copy extracted executable to Workstation (replace with your copy method)
+      scp:
+        src: "{{ pcap_dir }}/{{ pcap_path }}.extracted"
+        dest: "/path/to/workstation/directory"
+      when: pcap_stat.stat.exists == true
+
+  vars:
+    pcap_path: "/path/to/server/pcap/file.pcap"
+    pcap_dir: "/path/to/server/pcap/directory"
